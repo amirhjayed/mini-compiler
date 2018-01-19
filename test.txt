@@ -1,0 +1,5 @@
+program test;
+var amir : char ; 
+begin
+	amir := 5;
+end
