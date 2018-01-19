@@ -347,11 +347,11 @@ symb_t anal_lex(){
                     etat = 36;
                 }
             case 36 :
-                result.ul = OPAFF;
+                result.ul = DP;
                 return result ;
             case 37 :
                 ungetc(c,fs);
-                result.ul = DP;
+                result.ul = OPAFF;
                 return result ;
 
             // EOF
@@ -466,25 +466,25 @@ void i(){
         accepter(READ);
         accepter(PO);
         accepter(ID);
-        accepter(PV);
+        accepter(PF);
     }
     else if(symbole.ul == READLN){
         accepter(READLN);
         accepter(PO);
         accepter(ID);
-        accepter(PV);
+        accepter(PF);
     }
     else if(symbole.ul == WRITE){
         accepter(WRITE);
         accepter(PO);
         accepter(ID);
-        accepter(PV);
+        accepter(PF);
     }
     else if(symbole.ul == WRITELN){
         accepter(WRITELN);
         accepter(PO);
         accepter(ID);
-        accepter(PV);
+        accepter(PF);
     }
 }
 
@@ -587,7 +587,7 @@ int main(int argc, char** argv){
         printf("file openned incorrectly\n");
     }
 
-///** TEST ANALEX */
+
 //    symbole=anal_lex();
 //    while(symbole.ul != EOF){
 //        printf("UL == %d\n",symbole.ul);
