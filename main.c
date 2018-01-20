@@ -73,18 +73,16 @@ int unilex_id(const char *ch){
     return i; // if not in keywords than i==15 (code of ID)
 }
 
-// ranger_id()
+// ranger_id() : tested +1
 
 int ranger_id(/*int *id_array, int *id_head, int *id_size : currently global variables ,*/int code_ul, const char *ch){
     int i = 0;
-    printf("in ranger(id): with params: ul=%d and id=%s\n",code_ul,ch);
     if (code_ul != ID){return -1;} // ch is keyword
     else{
         while((i < id_head) && (strcmp(ch,id_array[i].id) != 0)){
             ++i;
         }
         if(i==id_head){ // le id ne figure pas dans id_array
-            printf("id not in array: i=%d ; id_head=%d --size=%d\n",i,id_head,id_size);
             if(++id_head>id_size){
                 id_size*=2;
                 id_array = realloc(id_array, id_size * sizeof(idef_t));
@@ -244,6 +242,7 @@ symb_t anal_lex(){
                 else {
                     etat = 14;
                 }
+                break;
             case 14 :
                 ungetc(c,fs);
                 result.ul = OPREL;
@@ -294,10 +293,8 @@ symb_t anal_lex(){
             case 24 :
                 /* error treatement */
                 result.ul = LEX_ERROR ;
-                return result;
                 debug_analex(etat);
-                break ;
-
+                return result;
             // OPMUL
             case 25 :
                 result.ul = OPADD;
@@ -323,9 +320,8 @@ symb_t anal_lex(){
             case 30 :
                 /* error treatement */
                 result.ul = LEX_ERROR ;
-                return result;
                 debug_analex(etat);
-                break ;
+                return result;
 
             // PONCT
             case 31 :
@@ -348,11 +344,12 @@ symb_t anal_lex(){
                 else{
                     etat = 36;
                 }
+            break;
             case 36 :
+                ungetc(c,fs);
                 result.ul = DP;
                 return result ;
             case 37 :
-                ungetc(c,fs);
                 result.ul = OPAFF;
                 return result ;
 
@@ -380,6 +377,7 @@ void accepter(int ul){
 // Procédurs non terminaux
 /* Missing error treatments */
 void facteur(){
+    printf("ul == %d\n",symbole.ul);
     printf("in facteur() \n");
     if(symbole.ul == ID){
         accepter(ID);
@@ -407,7 +405,7 @@ void termep(){
 }
 
 void terme(){
-    printf("in facteur() \n");
+    printf("in terme() \n");
     facteur();
     termep();
 }
