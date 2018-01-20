@@ -77,18 +77,20 @@ int unilex_id(const char *ch){
 
 int ranger_id(/*int *id_array, int *id_head, int *id_size : currently global variables ,*/int code_ul, const char *ch){
     int i = 0;
+    printf("in ranger(id): with params: ul=%d and id=%s\n",code_ul,ch);
     if (code_ul != ID){return -1;} // ch is keyword
     else{
         while((i < id_head) && (strcmp(ch,id_array[i].id) != 0)){
             ++i;
         }
         if(i==id_head){ // le id ne figure pas dans id_array
+            printf("id not in array: i=%d ; id_head=%d --size=%d\n",i,id_head,id_size);
             if(++id_head>id_size){
                 id_size*=2;
                 id_array = realloc(id_array, id_size * sizeof(idef_t));
             }
             strcpy(id_array[i].id, ch);
-            id_array[id_head].type = INTEGER ; /*Missing: phase sémantique ?*/
+            id_array[i].type = INTEGER ; /*Missing: phase sémantique ?*/
         }
         return i;
     }
@@ -571,13 +573,15 @@ void p(){
 }
 
 int main(int argc, char** argv){
+
+    int i = 0 ;
     if(argc != 2){
         printf("fichier source manquant\n");
         return -1;
     }
     fs = fopen(argv[1], "r");
     id_size = 5 ;
-    id_head = 1 ;
+    id_head = 0 ;
     id_array = malloc(id_size * sizeof(idef_t));
 
     if(fs){ //
@@ -587,7 +591,11 @@ int main(int argc, char** argv){
         printf("file openned incorrectly\n");
     }
 
+    /** Content of id_array */
 
+    for(i=0;i<id_head;++i){
+        printf("id_array[%d].id = %s\n", i, id_array[i].id);
+    }
 //    symbole=anal_lex();
 //    while(symbole.ul != EOF){
 //        printf("UL == %d\n",symbole.ul);
