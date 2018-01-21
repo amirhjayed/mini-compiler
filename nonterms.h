@@ -12,11 +12,11 @@ int exprp();
 int expr();
 void i();
 void inst_comp();
-void type();
+int type();
 void list_instp();
 void list_inst();
-void liste_id();
-void liste_idp();
+int liste_id();
+int liste_idp();
 void dcl();
 void p();
 
