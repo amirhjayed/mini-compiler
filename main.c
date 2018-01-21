@@ -87,7 +87,7 @@ int unilex_id(const char *ch){
 
 // ranger_id() : tested +1
 
-int ranger_id(/*int *id_array, int *id_head, int *id_size : currently global variables ,*/int code_ul, const char *ch){
+int ranger_id(int code_ul, const char *ch){
     int i = 0;
     new_id_flag = 0 ;
     if (code_ul != ID){return -1;} // ch is keyword
@@ -171,7 +171,7 @@ symb_t anal_lex(){
                 ungetc(c,fs);
                 ch[n]='\0';
                 result.ul  = unilex_id(ch);
-                result.att = ranger_id(/*id_array,&id_head,&id_size,*/result.ul, ch);
+                result.att = ranger_id(result.ul, ch);
                 return result;
 
             case 3 :
@@ -468,11 +468,16 @@ int expr_simplep(){
         accepter(OPADD);
         t1=terme();
         t2=expr_simplep();
-        if(t1==t2){
-            return t1;
+        if(t2 != VOID_TYPE){
+            if(t1==t2){
+                return t1;
+            }
+            else{
+                return TYPE_ERROR;
+            }
         }
         else{
-            return TYPE_ERROR;
+            return t1;
         }
     }
     else{
@@ -537,11 +542,12 @@ void i(){
        accepter(OPAFF);
        t1=expr_simple();
        t2=id_array[ind_array].type;
-       printf("ind_array==%d;;;t1=%d | t2=%d \n",ind_array,t1,t2);
+       printf("t1=%d | t2=%d \n",t1,t2);
        if(t1!=t2){
             printf("WARNING: type mismatch %s and expression\n",id_array[ind_array].id);
        }
     }
+
     else if(symbole.ul == IF){
         accepter(IF);
         expr();
@@ -550,7 +556,6 @@ void i(){
         accepter(ELSE);
         i();
     }
-
     // No type checking needed
     else if(symbole.ul == WHILE){
         accepter(WHILE);
@@ -643,7 +648,6 @@ void liste_idp(){
 void dcl(){
     printf("in dcl() \n");
     dcl_flag = 1;
-    printf("symbole.ul == %d\n",symbole.ul);
     if(symbole.ul == VAR){
         accepter(VAR);
         liste_id();
