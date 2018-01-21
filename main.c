@@ -52,13 +52,16 @@ typedef struct idef_t{
     int type;
 }idef_t;
 
-    /*Move to main ? */
+    /*globals*/
+
     FILE *fs;
     symb_t symbole;
     idef_t *id_array;
     int id_size;
     int id_head;
     int etat = 0 ;
+    int dcl_flag; // utilisé par analyse sémantique pour determiner si declaration mal placée
+    int new_id_flag;
     //
 
 // Analyse lexicale
@@ -77,18 +80,19 @@ int unilex_id(const char *ch){
 
 int ranger_id(/*int *id_array, int *id_head, int *id_size : currently global variables ,*/int code_ul, const char *ch){
     int i = 0;
+    new_id_flag = 0 ;
     if (code_ul != ID){return -1;} // ch is keyword
     else{
         while((i < id_head) && (strcmp(ch,id_array[i].id) != 0)){
             ++i;
         }
         if(i==id_head){ // le id ne figure pas dans id_array
+            new_id_flag = 1 ;
             if(++id_head>id_size){
                 id_size*=2;
                 id_array = realloc(id_array, id_size * sizeof(idef_t));
             }
             strcpy(id_array[i].id, ch);
-            id_array[i].type = INTEGER ; /*Missing: phase sémantique ?*/
         }
         return i;
     }
@@ -366,6 +370,11 @@ symb_t anal_lex(){
 void accepter(int ul){
     if(ul == symbole.ul){
         printf("accepted : %d \n",ul);
+        if(symbole.ul == ID){
+            if((new_id_flag)&&(!dcl_flag)){ // if misplaced declaration
+                printf("Warning : misplaced declaration of %s\n",id_array[id_head-1].id);
+            }
+        }
         symbole = anal_lex();
     }
     else{
@@ -544,7 +553,7 @@ void liste_idp(){
 
 void dcl(){
     printf("in dcl() \n");
-
+    dcl_flag = 1;
     printf("symbole.ul == %d\n",symbole.ul);
     if(symbole.ul == VAR){
         accepter(VAR);
@@ -555,6 +564,7 @@ void dcl(){
         dcl();
     }
     else{
+        dcl_flag = 0;
         // epsilon
     }
 }
