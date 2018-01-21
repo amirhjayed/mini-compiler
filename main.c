@@ -377,14 +377,16 @@ symb_t anal_lex(){
 
 // Analyse synatxique
 int accepter(int ul){
+    int ret_att;
     if(ul == symbole.ul){
         printf("accepted : %d \n",ul);
         if(symbole.ul == ID){
+            ret_att=symbole.att;
             symbole = anal_lex();
             if((new_id_flag)&&(!dcl_flag)){ // if misplaced declaration
                 printf("Warning : misplaced declaration of %s\n",id_array[id_head-1].id);
             }
-            return symbole.att;
+            return ret_att;
         }
         symbole = anal_lex();
     }
@@ -535,6 +537,7 @@ void i(){
        accepter(OPAFF);
        t1=expr_simple();
        t2=id_array[ind_array].type;
+       printf("ind_array==%d;;;t1=%d | t2=%d \n",ind_array,t1,t2);
        if(t1!=t2){
             printf("WARNING: type mismatch %s and expression\n",id_array[ind_array].id);
        }
@@ -657,9 +660,11 @@ void dcl(){
 
 void p(){
     printf("in p() \n");
+    dcl_flag=1;
     symbole = anal_lex();
     accepter(PROGRAM);
     accepter(ID);
+    dcl_flag=0;
     accepter(PV);
     dcl();
     inst_comp();
@@ -685,12 +690,13 @@ int main(int argc, char** argv){
         printf("file openned incorrectly\n");
     }
 
-    /** Content of id_array */
+//    /** Content of id_array */
 
     for(i=0;i<id_head;++i){
         printf("id_array[%d].id = %s\n", i, id_array[i].id);
         printf("id_array[%d].type= %d\n",i,id_array[i].type);
     }
+
 //    symbole=anal_lex();
 //    while(symbole.ul != EOF){
 //        printf("UL == %d\n",symbole.ul);
