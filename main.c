@@ -60,11 +60,13 @@ typedef struct symb_t {
 typedef struct idef_t{
     char id[MAX_ID_LENGTH];
     int type;
+    void *ptr;
 }idef_t;
+
 
     /*globals*/
 
-    FILE *fs;
+    FILE *fs, *fd;
     symb_t symbole;
     idef_t *id_array;
     int id_size;
@@ -74,6 +76,12 @@ typedef struct idef_t{
     int new_id_flag;
     int l_sz; //used by liste_id() to track the number of declared variables.
     //
+
+
+// Attributes
+    enum oprel {egal,diff,inf_egale,sup_egale,sup_strict,inf_strict};
+    enum opadd {sum,subs,ou};
+    enum opmul {mul,division,mod,et};
 
 // Analyse lexicale
 
@@ -190,7 +198,7 @@ symb_t anal_lex(){
                 ungetc(c,fs);
                 ch[n]='\0';
                 result.ul = NB;
-                // result.att = atoi(ch); ?
+                result.att = atoi(ch);
                 return result;
             case 5 :
                 c = getc(fs);
@@ -239,13 +247,13 @@ symb_t anal_lex(){
                 break;
             case 11 :
                 result.ul = OPREL;
+                result.att=egal;
                 return result;
             case 12 :
                 debug_analex(etat);
                 result.ul = LEX_ERROR ;
                 return result;
                 /* traitment d'erreur */
-                break;
             case 13 :
                 c = getc(fs);
                 if (c == '>'){
@@ -261,12 +269,15 @@ symb_t anal_lex(){
             case 14 :
                 ungetc(c,fs);
                 result.ul = OPREL;
+                result.att= inf_strict;
                 return result;
             case 15 :
                 result.ul =OPREL;
+                result.att=diff;
                 return result;
             case 16 :
                 result.ul =OPREL;
+                result.att=inf_egale;
                 return result;
             case 17 :
                 c = getc(fs);
@@ -279,18 +290,22 @@ symb_t anal_lex(){
                 break;
             case 18 :
                 result.ul = OPREL;
+                result.att=sup_egale;
                 return result;
             case 19 :
                 ungetc(c,fs);
                 result.ul = OPREL;
+                result.att=sup_strict;
                 return result;
 
             // OPADD
             case 20 :
                 result.ul = OPADD;
+                result.att=sum;
                 return result;
             case 21 :
                 result.ul = OPADD;
+                result.att=subs;
                 return result;
             case 22 :
                 c = getc(fs);
@@ -303,6 +318,7 @@ symb_t anal_lex(){
                 break;
             case 23 :
                 result.ul = OPADD;
+                result.att=ou;
                 return result;
 
             case 24 :
@@ -312,13 +328,16 @@ symb_t anal_lex(){
                 return result;
             // OPMUL
             case 25 :
-                result.ul = OPADD;
+                result.ul = OPMUL;
+                result.att=mul;
                 return result ;
             case 26 :
-                result.ul = OPADD;
+                result.ul = OPMUL;
+                result.att=division;
                 return result ;
             case 27 :
-                result.ul = OPADD;
+                result.ul = OPMUL;
+                result.att=mod;
                 return result ;
             case 28 :
                 c = getc(fs);
@@ -330,7 +349,8 @@ symb_t anal_lex(){
                 }
                 break;
             case 29 :
-                result.ul = OPADD;
+                result.ul = OPMUL;
+                result.att=et;
                 return result ;
             case 30 :
                 /* error treatement */
@@ -550,6 +570,7 @@ void i(){
        }
     }
 
+    // No type checking needed
     else if(symbole.ul == IF){
         accepter(IF);
         expr();
@@ -558,7 +579,6 @@ void i(){
         accepter(ELSE);
         i();
     }
-    // No type checking needed
     else if(symbole.ul == WHILE){
         accepter(WHILE);
         expr();
@@ -663,6 +683,12 @@ void dcl(){
         t=type();
         for(i=0;i!=l_sz;++i){
             id_array[id_head-i-1].type=t;
+            if(t==INTEGER){
+                id_array[id_head-i-1].ptr=malloc(sizeof(int));
+            }
+            else if(t==CHAR){
+                id_array[id_head-i-1].ptr=malloc(sizeof(char));
+            }
         }
         accepter(PV);
         dcl();
@@ -689,11 +715,12 @@ void p(){
 int main(int argc, char** argv){
 
     int i = 0 ;
-    if(argc != 2){
-        printf("fichier source manquant\n");
+    if(argc != 3){
+        printf("arguments manquants\n");
         return -1;
     }
     fs = fopen(argv[1], "r");
+    fd = fopen(argv[2], "w+");
     id_size = 5 ;
     id_head = 0 ;
     id_array = malloc(id_size * sizeof(idef_t));
@@ -719,6 +746,11 @@ int main(int argc, char** argv){
 //    }
 
     fclose(fs);
+
+    for(i=0;i!=id_head;++i){
+        free(id_array[id_head-i-1].ptr);
+    }
     free(id_array);
+    //
     return 0;
 }
