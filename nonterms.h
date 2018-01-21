@@ -3,13 +3,13 @@
 // Procédurs non terminaux
 /* Missing error treatments */
 
-void facteur();
-void termep();
-void terme();
-void expr_simplep();
-void expr_simple();
-void exprp();
-void expr();
+int facteur();
+int termep();
+int terme();
+int expr_simplep();
+int expr_simple();
+int exprp();
+int expr();
 void i();
 void inst_comp();
 void type();

@@ -1,3 +1,9 @@
+
+/*Regles sémantique implémenté */
+// declaration
+// type compatibility : nonterms functions return TYPE
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +13,9 @@
 
 #define MAX_ID_LENGTH 32
 #define LEX_ERROR -2
+#define TYPE_ERROR -3
+#define VOID_TYPE -4
+
 // Definition et code de UL
 // keywords
 #define PROGRAM 0
@@ -367,10 +376,11 @@ symb_t anal_lex(){
 // fin analex
 
 // Analyse synatxique
-void accepter(int ul){
+int accepter(int ul){
     if(ul == symbole.ul){
         printf("accepted : %d \n",ul);
         if(symbole.ul == ID){
+            return symbole.att;
             if((new_id_flag)&&(!dcl_flag)){ // if misplaced declaration
                 printf("Warning : misplaced declaration of %s\n",id_array[id_head-1].id);
             }
@@ -380,82 +390,153 @@ void accepter(int ul){
     else{
         printf("erreur : expected %d but found %d\n",ul,symbole.ul);
     }
-
+    return -1;
 }
 
 // Procédurs non terminaux
 /* Missing error treatments */
-void facteur(){
-    printf("ul == %d\n",symbole.ul);
+int facteur(){
     printf("in facteur() \n");
+    int type=VOID_TYPE;
+    int ind_array;
     if(symbole.ul == ID){
-        accepter(ID);
+        ind_array=accepter(ID);
+        type=id_array[ind_array].type;
     }
     if(symbole.ul == NB){
         accepter(NB);
+        type=INTEGER;
     }
     if(symbole.ul == PO){
         accepter(PO);
-        expr_simple();
+        type=expr_simple();
         accepter(PF);
     }
+    return type;
 }
 
-void termep(){
+int termep(){
     printf("in termep() \n");
+    int t1,t2;
     if (symbole.ul == OPMUL){
         accepter(OPMUL);
-        facteur();
-        termep();
+        t1=facteur();
+        t2=termep();
+        if(t2 != VOID_TYPE){
+            if(t1==t2){
+                return t1;
+            }
+            else{
+                return TYPE_ERROR;
+            }
+        }
+        else{
+            return t1;
+        }
     }
     else{
+        return VOID_TYPE;
         //epsilon
     }
 }
 
-void terme(){
+int terme(){
     printf("in terme() \n");
-    facteur();
-    termep();
+    int t1,t2;
+    t1=facteur();
+    t2=termep();
+    if(t2 != VOID_TYPE){
+        if(t1==t2){
+            return t1;
+        }
+        else{
+            return TYPE_ERROR;
+        }
+    }
+    else{
+        return t1;
+    }
 }
 
-void expr_simplep(){
+int expr_simplep(){
     printf("in expr_simplep() \n");
     if(symbole.ul == OPADD){
+        int t1,t2;
         accepter(OPADD);
-        terme();
-        expr_simplep();
+        t1=terme();
+        t2=expr_simplep();
+        if(t1==t2){
+            return t1;
+        }
+        else{
+            return TYPE_ERROR;
+        }
     }
     else{
+        return VOID_TYPE;
+        //epsilon
+    }
+}
+int expr_simple(){
+    printf("in expr_simple() \n");
+    int t1,t2;
+    t1=terme();
+    t2=expr_simplep();
+    if(t2 != VOID_TYPE){
+        if(t1==t2){
+            return t1;
+        }
+        else{
+            return TYPE_ERROR;
+        }
+    }
+    else{
+        return t1;
+    }
+}
+
+int exprp(){
+    printf("in exprp() \n");
+    if(symbole.ul == OPREL){
+        accepter(OPREL);
+        return expr_simple();
+    }
+    else{
+        return VOID_TYPE;
         //epsilon
     }
 }
 
-void expr_simple(){
-    printf("in expr_simple() \n");
-    terme();
-    expr_simplep();
-}
-
-void exprp(){
-    printf("in exprp() \n");
-    if(symbole.ul == OPREL){
-        expr_simple();
-    }
-}
-
-void expr(){
+int expr(){
+    int t1,t2;
     printf("in expr() \n");
-    expr_simple();
-    exprp();
+    t1=expr_simple();
+    t2=exprp();
+    if(t2 != VOID_TYPE){
+        if(t1==t2){
+            return t1;
+        }
+        else{
+            return TYPE_ERROR;
+        }
+    }
+    else{
+        return t1;
+    }
 }
 
 void i(){
+    int ind_array;
+    int t1,t2;
     printf("in i() \n");
     if(symbole.ul == ID){
-       accepter(ID);
+       ind_array=accepter(ID);
        accepter(OPAFF);
-       expr_simple();
+       t1=expr_simple();
+       t2=id_array[ind_array].type;
+       if(t1!=t2){
+            printf("WARNING: type mismatch %s and expression\n",id_array[ind_array].id);
+       }
     }
     else if(symbole.ul == IF){
         accepter(IF);
@@ -465,6 +546,8 @@ void i(){
         accepter(ELSE);
         i();
     }
+
+    // No type checking needed
     else if(symbole.ul == WHILE){
         accepter(WHILE);
         expr();
@@ -507,9 +590,11 @@ void inst_comp(){
 void type(){
     printf("in type() \n");
     if (symbole.ul == INTEGER){
+        id_array[id_head-1].type=INTEGER;
         accepter(INTEGER);
     }
     else{
+        id_array[id_head-1].type=CHAR;
         accepter(CHAR);
     }
 }
@@ -603,6 +688,7 @@ int main(int argc, char** argv){
 
     for(i=0;i<id_head;++i){
         printf("id_array[%d].id = %s\n", i, id_array[i].id);
+        printf("id_array[%d].type= %d\n",i,id_array[i].type);
     }
 //    symbole=anal_lex();
 //    while(symbole.ul != EOF){
