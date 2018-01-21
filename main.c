@@ -1,7 +1,8 @@
 
 /*Regles sémantique implémenté */
 // declaration
-// type compatibility : nonterms functions return TYPE
+// type checking
+// k
 
 
 #include <stdio.h>
@@ -71,6 +72,7 @@ typedef struct idef_t{
     int etat = 0 ;
     int dcl_flag; // utilisé par analyse sémantique pour determiner si declaration mal placée
     int new_id_flag;
+    int l_sz; //used by liste_id() to track the number of declared variables.
     //
 
 // Analyse lexicale
@@ -596,15 +598,15 @@ void inst_comp(){
     accepter(END);
 }
 
-void type(){
+int type(){
     printf("in type() \n");
     if (symbole.ul == INTEGER){
-        id_array[id_head-1].type=INTEGER;
         accepter(INTEGER);
+        return INTEGER;
     }
     else{
-        id_array[id_head-1].type=CHAR;
         accepter(CHAR);
+        return CHAR;
     }
 }
 
@@ -626,20 +628,23 @@ void list_inst(){
     list_instp();
 }
 
-void liste_id(){
+int liste_id(){
     printf("in liste_id() \n");
+    l_sz=0;
     accepter(ID);
-    liste_idp();
+    return(liste_idp());
 }
 
-void liste_idp(){
-        printf("in liste_idp() \n");
+int liste_idp(){
+    printf("in liste_idp() \n");
     if(symbole.ul == VG){
-        printf("found a VG\n");
+        ++l_sz;
         accepter(VG);
+        accepter(ID);
         liste_idp();
     }
     else{
+        return(++l_sz);
         // epsilon
     }
 }
@@ -648,11 +653,17 @@ void liste_idp(){
 void dcl(){
     printf("in dcl() \n");
     dcl_flag = 1;
+    int t;
+    int i;
+    int l_sz=0;
     if(symbole.ul == VAR){
         accepter(VAR);
-        liste_id();
+        l_sz=liste_id();
         accepter(DP);
-        type();
+        t=type();
+        for(i=0;i!=l_sz;++i){
+            id_array[id_head-i-1].type=t;
+        }
         accepter(PV);
         dcl();
     }
