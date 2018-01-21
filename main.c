@@ -380,10 +380,11 @@ int accepter(int ul){
     if(ul == symbole.ul){
         printf("accepted : %d \n",ul);
         if(symbole.ul == ID){
-            return symbole.att;
+            symbole = anal_lex();
             if((new_id_flag)&&(!dcl_flag)){ // if misplaced declaration
                 printf("Warning : misplaced declaration of %s\n",id_array[id_head-1].id);
             }
+            return symbole.att;
         }
         symbole = anal_lex();
     }
