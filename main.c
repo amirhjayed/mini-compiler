@@ -75,6 +75,7 @@ typedef struct idef_t{
     int dcl_flag; // utilisé par analyse sémantique pour determiner si declaration mal placée
     int new_id_flag;
     int l_sz; //used by liste_id() to track the number of declared variables.
+    int etiq_ctr=0;
     //
 
 
@@ -402,6 +403,12 @@ symb_t anal_lex(){
 // fin analex
 
 // Analyse synatxique
+
+int creer_etiq(){
+    // cours : numerique qui s'incrémente;
+    return etiq_ctr++;
+}
+
 int accepter(int ul){
     int ret_att;
     if(ul == symbole.ul){
@@ -539,15 +546,17 @@ int expr_simple(){
 
 int exprp(){
     int att;
+    int type;
     printf("in exprp() \n");
     if(symbole.ul == OPREL){
         att=symbole.att;
         accepter(OPREL);
-        return expr_simple();
+        type=expr_simple();
+        fprintf(fd,"%s\n",oprel_2str[att]);
+        return type;
     }
     else{
         return VOID_TYPE;
-        fprintf(fd,"%s",oprel_2str[att]);
         //epsilon
     }
 }
@@ -590,20 +599,29 @@ void i(){
 
     // No type checking needed
     else if(symbole.ul == IF){
+        int sortie;
+        sortie=creer_etiq();
         accepter(IF);
         expr();
+        fprintf(fd,"allersifaux %d \n",sortie);
         accepter(THEN);
-        fprintf(fd,"%s\n","allersifaux\n");
         i();
         accepter(ELSE);
-        fprintf(fd,"%s\n","etiq sortie\n");
+        fprintf(fd,"etiq %d : \n",sortie);
         i();
     }
     else if(symbole.ul == WHILE){
+        int test,sortie;
+        test=creer_etiq();
+        sortie=creer_etiq();
         accepter(WHILE);
+        fprintf(fd,"etiq %d\n",test);
         expr();
+        fprintf(fd,"allersifaux %d\n",sortie);
         accepter(DO);
         i();
+        fprintf(fd,"allerà %d\n",test);
+        fprintf(fd,"etiq %d\n",sortie);
     }
     else if(symbole.ul == READ){
         accepter(READ);
