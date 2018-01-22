@@ -83,44 +83,9 @@ typedef struct idef_t{
     enum opadd {sum,subs,ou};
     enum opmul {mul,division,mod,et};
 
-    const char *oprel_2str(int att){
-        switch(att){
-        case egal:
-            return "==";
-        case diff:
-            return "<>";
-        case inf_egale:
-            return "<=";
-        case sup_egale:
-            return ">=";
-        case sup_strict:
-            return ">";
-        case inf_strict:
-            return "<";
-        }
-    }
-    const char *opadd_2str(int att){
-        switch(att){
-        case sum:
-            return "+";
-        case subs:
-            return "-";
-        case ou:
-            return "||";
-        }
-    }
-    const char *opmul_2str(int att){
-        switch(att){
-        case mul:
-            return "*";
-        case division:
-            return "/";
-        case mod:
-            return "%";
-        case et:
-            return "&&";
-        }
-    }
+    const char * const oprel_2str[]={"==","<>","<=",">=",">","<"};
+    const char * const opadd_2str[]={"+","-","||"};
+    const char * const opmul_2str[]={"*","/","%","&&"};
 
 // Analyse lexicale
 
@@ -490,7 +455,7 @@ int termep(){
         accepter(OPMUL);
         t1=facteur();
         t2=termep();
-        fprintf(fd,"%s\n",opmul_2str(att));
+        fprintf(fd,"%s\n",opmul_2str[att]);
         if(t2 != VOID_TYPE){
             if(t1==t2){
                 return t1;
@@ -536,7 +501,7 @@ int expr_simplep(){
         accepter(OPADD);
         t1=terme();
         t2=expr_simplep();
-        fprintf(fd,"%s\n",opadd_2str(att));
+        fprintf(fd,"%s\n",opadd_2str[att]);
         if(t2 != VOID_TYPE){
             if(t1==t2){
                 return t1;
@@ -582,7 +547,7 @@ int exprp(){
     }
     else{
         return VOID_TYPE;
-        fprintf(fd,"%s",oprel_2str(att));
+        fprintf(fd,"%s",oprel_2str[att]);
         //epsilon
     }
 }
@@ -611,7 +576,7 @@ void i(){
     printf("in i() \n");
     if(symbole.ul == ID){
        ind_array=accepter(ID);
-       fprintf(fd,"%s %p\n","valeurg ",id_array[ind_array].ptr);
+       fprintf(fd,"valeurg %p\n",id_array[ind_array].ptr);
        accepter(OPAFF);
        t1=expr_simple();
        // typechecking
@@ -644,28 +609,28 @@ void i(){
         accepter(READ);
         accepter(PO);
         ind_array=accepter(ID);
-        fprintf(fd,"%s %p\n","read valeurg %p\n",id_array[ind_array].ptr);
+        fprintf(fd,"read valeurg %p\n",id_array[ind_array].ptr);
         accepter(PF);
     }
     else if(symbole.ul == READLN){
         accepter(READLN);
         accepter(PO);
         ind_array=accepter(ID);
-        fprintf(fd,"%s %p\n","readln valeurg %p\n",id_array[ind_array].ptr);
+        fprintf(fd,"readln valeurg %p\n",id_array[ind_array].ptr);
         accepter(PF);
     }
     else if(symbole.ul == WRITE){
         accepter(WRITE);
         accepter(PO);
         ind_array=accepter(ID);
-        fprintf(fd,"%s %p\n","write valeurd %p\n",id_array[ind_array].ptr);
+        fprintf(fd,"write valeurd %p\n",id_array[ind_array].ptr);
         accepter(PF);
     }
     else if(symbole.ul == WRITELN){
         accepter(WRITELN);
         accepter(PO);
         ind_array=accepter(ID);
-        fprintf(fd,"%s %p\n","writeln valeurd %p\n",id_array[ind_array].ptr);
+        fprintf(fd,"writeln valeurd %p\n",id_array[ind_array].ptr);
         accepter(PF);
     }
 }
