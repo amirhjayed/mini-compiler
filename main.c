@@ -44,19 +44,25 @@ int main(int argc, char** argv){
     id_array = malloc(id_size * sizeof(idef_t));
 
     if((fs) && (fd)){
+        printf("Compilation de fichier source '%s'...\n\n",argv[1]);
         p();
     }
     else {
-        printf("files openned incorrectly\n");
+        printf("\nfichiers non ouvrit correctement.\n");
     }
 
     if(!traduction_flag){
         fclose(fd);
         remove(argv[2]);
+        printf("Traduction echouee.\n\n");
+    }
+    else{
+        printf("\nTraduction reussit!\n Fichier destination: '%s'",argv[2]);
     }
 
     fclose(fs);
     fclose(fd);
+
     for(i=0;i!=id_head;++i){
         free(id_array[id_head-i-1].ptr);
     }

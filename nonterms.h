@@ -55,7 +55,12 @@ int creer_etiq(){
     return etiq_ctr++;
 }
 void syntax_error(int ul,int s_ul){
-    printf("Syntax error : expected %s but found %s : in (%d, %d)\n",ul_words[ul],ul_words[s_ul],f_line,f_column);
+    if(s_ul!=-2){
+        printf("SYNTAX ERROR (%d, %d): Expected '%s' but found '%s'.\n",f_line,f_column,ul_words[ul],ul_words[s_ul]);
+    }
+    else{
+        printf("LEXICAL ERROR (%d, %d).\n",f_line,f_column);
+    }
 }
 int accepter(int ul){
     int ret_att;
@@ -65,7 +70,7 @@ int accepter(int ul){
             symbole = anal_lex();
             if((new_id_flag)&&(!dcl_flag)){ // if misplaced declaration
                 traduction_flag = 0;
-                printf("Warning : misplaced declaration of %s\n",id_array[id_head-1].id);
+                printf("WARNING (%d, %d): misplaced declaration of %s\n",f_line,f_column,id_array[id_head-1].id);
             }
             return ret_att;
         }
@@ -91,12 +96,12 @@ int facteur(){
     }
     else if(symbole.ul == PO){
         accepter(PO);
-        type=expr_simple();
+        type=expr();
         accepter(PF);
     }
     else{
         traduction_flag=0;
-        printf("Syntax error : facteur manquant! \n");
+        printf("SYNTAX ERROR (%d, %d): facteur manquant \n",f_line, f_column);
     }
     return type;
 }
@@ -232,7 +237,7 @@ void i(){
        t2=id_array[ind_array].type;
        if(t1!=t2){
             traduction_flag = 0;
-            printf("WARNING: type mismatch %s and expression : in (%d, %d) \n",id_array[ind_array].id,f_line,f_column);
+            printf("WARNING (%d, %d): type mismatch %s and expr_simple()\n",f_line,f_column,id_array[ind_array].id);
        }
        fprintf(fd,":=\n");
     }
@@ -347,7 +352,6 @@ void dcl(){
     dcl_flag = 1;
     int t;
     int i;
-    int l_sz=0;
     if(symbole.ul == VAR){
         accepter(VAR);
         liste_id();

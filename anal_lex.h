@@ -8,11 +8,9 @@ extern int traduction_flag;
 extern int f_line;
 extern int f_column;
 
-// Analyse lexicale
 enum uni_lex {PROGRAM, VAR, INTEGER, CHAR, BEGIN, END, IF, THEN, ELSE, WHILE, DO,
              READ, READLN, WRITE, WRITELN, ID, PV, PT, DP, VG, OPAFF,
              OPMUL, OPREL, OPADD, NB, PO, PF};
-// unilex_id()
 
 int unilex_id(const char *ch){
     int i = 0;
@@ -21,8 +19,6 @@ int unilex_id(const char *ch){
     }
     return i; // if not in ul_words than i==15 (code of ID)
 }
-
-// ranger_id() : tested +1
 
 int ranger_id(int code_ul, const char *ch){
     int i = 0;
@@ -44,10 +40,6 @@ int ranger_id(int code_ul, const char *ch){
     }
 }
 
-// debug();
-void debug_analex(int etat){
-    printf("erreur dans etat = %d \n",etat);
-}
 // Automate à état fini
 symb_t anal_lex(){
     etat = 0 ;
@@ -97,7 +89,6 @@ symb_t anal_lex(){
                 }
                 else{ // autre
                     /* Missing error treatement */
-                    debug_analex(etat);
                     etat = 9;
                 }
                 break;
@@ -172,10 +163,9 @@ symb_t anal_lex(){
                 result.ul = PO ;
                 return result;
             case 9 :
-                debug_analex(etat);
-                result.ul = -1;
+                result.ul = LEX_ERROR;
                 return result ;
-                /* Missing error treatement*/
+                /* Missing error treatement */
                 break;
 
             // OPREL
@@ -194,7 +184,6 @@ symb_t anal_lex(){
                 result.att=egal;
                 return result;
             case 12 :
-                debug_analex(etat);
                 result.ul = LEX_ERROR ;
                 return result;
                 /* traitment d'erreur */
@@ -273,8 +262,8 @@ symb_t anal_lex(){
             case 24 :
                 /* error treatement */
                 result.ul = LEX_ERROR ;
-                debug_analex(etat);
                 return result;
+
             // OPMUL
             case 25 :
                 result.ul = OPMUL;
@@ -305,7 +294,6 @@ symb_t anal_lex(){
             case 30 :
                 /* error treatement */
                 result.ul = LEX_ERROR ;
-                debug_analex(etat);
                 return result;
 
             // PONCT
@@ -347,7 +335,5 @@ symb_t anal_lex(){
         }
     }
 }
-// fin analex
-
 
 #endif // ANAL_LEX_H
