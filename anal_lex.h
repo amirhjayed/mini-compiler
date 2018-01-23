@@ -4,6 +4,10 @@
 #include "structs.h"
 #include "globals.h"
 
+extern int traduction_flag;
+extern int f_line;
+extern int f_column;
+
 // Analyse lexicale
 enum uni_lex {PROGRAM, VAR, INTEGER, CHAR, BEGIN, END, IF, THEN, ELSE, WHILE, DO,
              READ, READLN, WRITE, WRITELN, ID, PV, PT, DP, VG, OPAFF,
@@ -12,10 +16,10 @@ enum uni_lex {PROGRAM, VAR, INTEGER, CHAR, BEGIN, END, IF, THEN, ELSE, WHILE, DO
 
 int unilex_id(const char *ch){
     int i = 0;
-    while((i != 15) && (strcmp(ch,keywords[i]) != 0)){
+    while((i != 15) && (strcmp(ch,ul_words[i]) != 0)){
         ++i;
     }
-    return i; // if not in keywords than i==15 (code of ID)
+    return i; // if not in ul_words than i==15 (code of ID)
 }
 
 // ranger_id() : tested +1
@@ -56,7 +60,15 @@ symb_t anal_lex(){
         switch(etat){
             case 0 :
                 c = getc(fs);
-                if((c == ' ') || (c == '\n') || (c =='\t'));
+                f_column++ ;
+                if(c == ' ');
+                else if(c == '\t'){
+                    f_column+=7; // \t is 8 columns
+                }
+                else if(c == '\n'){
+                    f_line++;
+                    f_column=0;
+                }
                 else if(isalpha(c)){
                     etat = 1;
                     ch[n++] = c;
@@ -92,6 +104,7 @@ symb_t anal_lex(){
 
             case 1 :
                 c = getc(fs);
+                f_column++;
                 if(isalnum(c)){
                     if(n < MAX_ID_LENGTH)
                         ch[n++]=c;
@@ -102,6 +115,7 @@ symb_t anal_lex(){
                 break;
             case 2 :
                 ungetc(c,fs);
+                f_column--;
                 ch[n]='\0';
                 result.ul  = unilex_id(ch);
                 result.att = ranger_id(result.ul, ch);
@@ -109,6 +123,7 @@ symb_t anal_lex(){
 
             case 3 :
                 c = getc(fs);
+                f_column++;
                 if(isdigit(c)){
                     if(n < MAX_ID_LENGTH)
                         ch[n++]=c;
@@ -119,12 +134,14 @@ symb_t anal_lex(){
                 break;
             case 4 :
                 ungetc(c,fs);
+                f_column--;
                 ch[n]='\0';
                 result.ul = NB;
                 result.att = atoi(ch);
                 return result;
             case 5 :
                 c = getc(fs);
+                f_column++;
                 if( c == '*'){
                     etat = 6;
                 }
@@ -134,12 +151,14 @@ symb_t anal_lex(){
                 break;
             case 6 :
                 c = getc(fs);
+                f_column++;
                 if( c == '*'){
                     etat = 7 ;
                 }
                 break;
             case 7 :
                 c = getc(fs);
+                f_column++;
                 if( c == ')'){
                     etat = 0;
                 }
@@ -149,6 +168,7 @@ symb_t anal_lex(){
                 break;
             case 8 :
                 ungetc(c,fs);
+                f_column--;
                 result.ul = PO ;
                 return result;
             case 9 :
@@ -161,6 +181,7 @@ symb_t anal_lex(){
             // OPREL
             case 10 :
                 c = getc(fs);
+                f_column++;
                 if(c == '='){
                     etat = 11 ;
                 }
@@ -179,6 +200,7 @@ symb_t anal_lex(){
                 /* traitment d'erreur */
             case 13 :
                 c = getc(fs);
+                f_column++;
                 if (c == '>'){
                     etat = 15;
                 }
@@ -191,6 +213,7 @@ symb_t anal_lex(){
                 break;
             case 14 :
                 ungetc(c,fs);
+                f_column--;
                 result.ul = OPREL;
                 result.att= inf_strict;
                 return result;
@@ -204,6 +227,7 @@ symb_t anal_lex(){
                 return result;
             case 17 :
                 c = getc(fs);
+                f_column++;
                 if (c == '='){
                     etat = 18;
                 }
@@ -217,6 +241,7 @@ symb_t anal_lex(){
                 return result;
             case 19 :
                 ungetc(c,fs);
+                f_column--;
                 result.ul = OPREL;
                 result.att=sup_strict;
                 return result;
@@ -232,6 +257,7 @@ symb_t anal_lex(){
                 return result;
             case 22 :
                 c = getc(fs);
+                f_column++;
                 if( c == '|'){
                     etat = 23;
                 }
@@ -264,6 +290,7 @@ symb_t anal_lex(){
                 return result ;
             case 28 :
                 c = getc(fs);
+                f_column++;
                 if( c == '%'){
                     etat = 29;
                 }
@@ -296,6 +323,7 @@ symb_t anal_lex(){
                 return result ;
             case 35 :
                 c = getc(fs);
+                f_column++;
                 if( c == '='){
                     etat = 37;
                 }
@@ -305,6 +333,7 @@ symb_t anal_lex(){
             break;
             case 36 :
                 ungetc(c,fs);
+                f_column--;
                 result.ul = DP;
                 return result ;
             case 37 :

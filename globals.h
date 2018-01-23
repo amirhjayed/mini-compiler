@@ -13,5 +13,7 @@ int dcl_flag; // utilisé par analyse sémantique pour determiner si declaration
 int new_id_flag;
 int l_sz; //used by liste_id() to track the number of declared variables.
 int etiq_ctr; // label counter
+int f_line;
+int f_column;
 
 #endif // GLOBALS_H

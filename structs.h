@@ -6,8 +6,12 @@
 #define TYPE_ERROR -3
 #define VOID_TYPE -4
 
-const char * const keywords[] = {"program","var","integer","char","begin","end","if","then",
-                  "else","while","do","read","readln","write","writeln"}; /*la position est le code d'UL*/
+const char * const ul_words[] = {"program","var","integer","char","begin","end","if","then",
+                  "else","while","do","read","readln","write","writeln","ID", "PV", "PT", "DP",
+                    "VG", "OPAFF","OPMUL", "OPREL", "OPADD", "NB", "PO", "PF"};
+
+
+                  /*la position est le code d'UL*/
 
 enum oprel {egal,diff,inf_egale,sup_egale,sup_strict,inf_strict};
 enum opadd {sum,subs,ou};
