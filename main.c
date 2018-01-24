@@ -29,6 +29,7 @@ extern int f_column;
 int main(int argc, char** argv){
     etiq_ctr=0;
     etat=0;
+    eof_flag=0;
     int i = 0 ;
     if(argc != 3){
         printf("arguments manquants\n");

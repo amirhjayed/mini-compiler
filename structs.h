@@ -19,6 +19,10 @@ enum oprel {egal,diff,inf_egale,sup_egale,sup_strict,inf_strict};
 enum opadd {sum,subs,ou};
 enum opmul {mul,division,mod,et};
 
+enum nonterms {P, DCL,LISTE_ID ,LISTE_IDP , LIST_INSTP, TYPE, INST_COMP,
+               I, EXPRP, EXPR_SIMPLEP, TERMEP, FACTEUR};
+
+
 typedef struct symb_t {
     int ul;
     int att;

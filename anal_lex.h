@@ -129,7 +129,7 @@ symb_t anal_lex(){
                 ch[n]='\0';
                 result.ul = NB;
                 result.att = atoi(ch);
-                return result;
+                    return result;
             case 5 :
                 c = getc(fs);
                 f_column++;

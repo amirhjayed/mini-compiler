@@ -45,29 +45,154 @@ extern int dcl_flag; // utilisé par analyse sémantique pour determiner si decl
 extern int new_id_flag;
 extern int l_sz; //used by liste_id() to track the number of declared variables.
 extern int etiq_ctr; // label counter
+extern int deb;
+extern int eof_flag;
 
 extern int f_line;
 extern int f_column;
-
-enum nonterms {P, DCL,LISTE_ID ,LISTE_IDP ,LIST_INST ,LIST_INSTP, TYPE, INST_COMP,
-               I, EXPR, EXPRP, EXPR_SIMPLE, EXPR_SIMPLEP, TERME, TERMEP, FACTEUR};
 
 // Analyse synatxique
 
 int creer_etiq(){
     return etiq_ctr++;
 }
-void reprise_erreur(int ul,int s_ul){
+
+int reprise_erreur(int ul,int s_ul,int nt){
     if(s_ul!=LEX_ERROR){
         printf("SYNTAX ERROR (%d, %d): Expected '%s' but found '%s'.\n",f_line,f_column,ul_words[ul],ul_words[s_ul]);
-
     }
     else{
         printf("LEXICAL ERROR (%d, %d).\n",f_line,f_column);
     }
+    while (symbole.ul != EOF){
+        switch (nt) {
+        case P:
+            if(symbole.ul == PROGRAM){
+                return PROGRAM;
+            }
+            break;
+        case DCL:
+            if(symbole.ul == BEGIN){
+                return BEGIN;
+            }
+            break;
+        case LISTE_ID:
+            if(symbole.ul == DP){
+                return DP;
+            }
+            break;
+        case LISTE_IDP:
+            if(symbole.ul == DP){
+                return DP;
+            }
+            break;
+        case LIST_INSTP:
+            if(symbole.ul == END){
+                return END;
+            }
+            break;
+        case TYPE:
+            if(symbole.ul == PV){
+                return PV;
+            }
+            break;
+        case INST_COMP:
+            if(deb == 1){
+                if(symbole.ul == BEGIN){
+                    return BEGIN;
+                }
+            }
+            else{
+                if(symbole.ul == PT){
+                    return PT;
+                }
+            }
+            break;
+        case I:
+            if(deb==1){
+                if(symbole.ul == ELSE){
+                    return ELSE;
+                }
+            }
+            else{
+                if(symbole.ul == PV){
+                    return PV;
+                }
+                if(symbole.ul == END){
+                    return END;
+                }
+            }
+            break;
+        case EXPRP:
+            if(symbole.ul == THEN){
+                return THEN;
+            }
+            if(symbole.ul == DO){
+                return DO;
+            }
+            if(symbole.ul == PF){
+                return PF;
+            }
+            break;
+        case EXPR_SIMPLEP:
+            if(symbole.ul == OPREL){
+                return OPREL;
+            }
+            if(symbole.ul == THEN){
+                return THEN;
+            }
+            if(symbole.ul == DO){
+                return DO;
+            }
+            if(symbole.ul == PF){
+                return PF;
+            }
+            break;
+        case TERMEP:
+            if(symbole.ul == OPADD){
+                return OPADD;
+            }
+            if(symbole.ul == OPREL){
+                return OPREL;
+            }
+            if(symbole.ul == THEN){
+                return THEN;
+            }
+            if(symbole.ul == DO){
+                return DO;
+            }
+            if(symbole.ul == PF){
+                return PF;
+            }
+            break;
+        case FACTEUR:
+            if(symbole.ul == OPMUL){
+                return OPMUL;
+            }
+            else if(symbole.ul == OPADD){
+                return OPADD;
+            }
+            if(symbole.ul == OPREL){
+                return OPREL;
+            }
+            if(symbole.ul == THEN){
+                return THEN;
+            }
+            if(symbole.ul == DO){
+                return DO;
+            }
+            if(symbole.ul == PF){
+                return PF;
+            }
+            break;
+        }
+        symbole=anal_lex();
+    }
+    return EOF;
 }
-int accepter(int ul){
+int accepter(int ul,int nt){
     int ret_att = NO_ATT;
+    int rep_value;
     if(ul == symbole.ul){
         if(symbole.ul == ID){
             ret_att=symbole.att;
@@ -88,7 +213,14 @@ int accepter(int ul){
     }
     else{
         traduction_flag = 0;
-        reprise_erreur(ul,symbole.ul);
+        rep_value=reprise_erreur(ul,symbole.ul,nt);
+        printf("repv=%d\n",rep_value);
+        if(rep_value != EOF){
+            printf("Analyse continue apres trouve: '%s'.\n ",ul_words[rep_value]);
+        }
+        else{
+                printf("ERROR: unexpected EOF\n");
+        }
         return SYNTAX_ERROR;
     }
 }
@@ -97,19 +229,19 @@ int facteur(){
     int type=VOID_TYPE;
     int att;
     if(symbole.ul == ID){
-        att=accepter(ID);
+        att=accepter(ID,FACTEUR);
         type=id_array[att].type;
         fprintf(fd,"valeurd %p\n",id_array[att].ptr);
     }
     else if(symbole.ul == NB){
-        att=accepter(NB);
+        att=accepter(NB,FACTEUR);
         fprintf(fd,"empiler %d\n",att);
         type=INTEGER;
     }
     else if(symbole.ul == PO){
-        accepter(PO);
+        symbole=anal_lex();
         type=expr();
-        accepter(PF);
+        accepter(PF,FACTEUR);
     }
     else{
         traduction_flag=0;
@@ -123,7 +255,7 @@ int termep(){
     int att ;
     if (symbole.ul == OPMUL){
         att=symbole.att;
-        accepter(OPMUL);
+        symbole=anal_lex();
         t1=facteur();
         t2=termep();
         fprintf(fd,"%s\n",opmul_2str[att]);
@@ -167,7 +299,7 @@ int expr_simplep(){
     if(symbole.ul == OPADD){
         int t1,t2;
         att=symbole.att;
-        accepter(OPADD);
+        symbole = anal_lex();
         t1=terme();
         t2=expr_simplep();
         fprintf(fd,"%s\n",opadd_2str[att]);
@@ -210,7 +342,7 @@ int exprp(){
     int type;
     if(symbole.ul == OPREL){
         att=symbole.att;
-        accepter(OPREL);
+        symbole=anal_lex();
         type=expr_simple();
         fprintf(fd,"%s\n",oprel_2str[att]);
         return type;
@@ -242,9 +374,9 @@ void i(){
     int ind_array;
     int t1,t2;
     if(symbole.ul == ID){
-       ind_array=accepter(ID);
+       ind_array=accepter(ID,I);
        fprintf(fd,"valeurg %p\n",id_array[ind_array].ptr);
-       accepter(OPAFF);
+       accepter(OPAFF,I);
        t1=expr_simple();
        t2=id_array[ind_array].type;
        if(t1!=t2){
@@ -257,13 +389,15 @@ void i(){
         int sortie,sinon;
         sinon=creer_etiq();
         sortie=creer_etiq();
-        accepter(IF);
+        accepter(IF,I);
         expr();
         fprintf(fd,"allersifaux %d \n",sinon);
-        accepter(THEN);
+        accepter(THEN,I);
+        deb=1;
         i();
+        deb=0;
         fprintf(fd,"allerà %d \n",sortie);
-        accepter(ELSE);
+        accepter(ELSE,I);
         fprintf(fd,"etiq %d : \n",sinon);
         i();
         fprintf(fd,"etiq %d : \n",sortie);
@@ -272,65 +406,67 @@ void i(){
         int test,sortie;
         test=creer_etiq();
         sortie=creer_etiq();
-        accepter(WHILE);
+        symbole=anal_lex();
         fprintf(fd,"etiq %d\n",test);
         expr();
         fprintf(fd,"allersifaux %d\n",sortie);
-        accepter(DO);
+        accepter(DO,I);
         i();
         fprintf(fd,"allerà %d\n",test);
         fprintf(fd,"etiq %d\n",sortie);
     }
     else if(symbole.ul == READ){
-        accepter(READ);
-        accepter(PO);
-        ind_array=accepter(ID);
+        symbole=anal_lex();
+        accepter(PO,I);
+        ind_array=accepter(ID,I);
         fprintf(fd,"read valeurg %p\n",id_array[ind_array].ptr);
-        accepter(PF);
+        accepter(PF,I);
     }
     else if(symbole.ul == READLN){
-        accepter(READLN);
-        accepter(PO);
-        ind_array=accepter(ID);
+        symbole = anal_lex();
+        accepter(PO,I);
+        ind_array=accepter(ID,I);
         fprintf(fd,"readln valeurg %p\n",id_array[ind_array].ptr);
-        accepter(PF);
+        accepter(PF,I);
     }
     else if(symbole.ul == WRITE){
-        accepter(WRITE);
-        accepter(PO);
-        ind_array=accepter(ID);
+        symbole = anal_lex();
+        accepter(PO,I);
+        ind_array=accepter(ID,I);
         fprintf(fd,"write valeurd %p\n",id_array[ind_array].ptr);
-        accepter(PF);
+        accepter(PF,I);
     }
     else if(symbole.ul == WRITELN){
-        accepter(WRITELN);
-        accepter(PO);
-        ind_array=accepter(ID);
+        symbole = anal_lex();
+        accepter(PO,I);
+        ind_array=accepter(ID,I);
         fprintf(fd,"writeln valeurd %p\n",id_array[ind_array].ptr);
-        accepter(PF);
+        accepter(PF,I);
     }
 }
 
 void inst_comp(){
-    accepter(BEGIN);
+    deb=1;
+    accepter(BEGIN,INST_COMP);
+    deb=0;
     list_inst();
-    accepter(END);
+    accepter(END,INST_COMP);
 }
 
 int type(){
     if (symbole.ul == INTEGER){
-        accepter(INTEGER);
+        accepter(INTEGER,TYPE);
         return INTEGER;
     }
     else{
-        accepter(CHAR);
+        accepter(CHAR,TYPE);
         return CHAR;
     }
 }
 
 void list_instp(){
     if(symbole.ul == PV){
-        accepter(PV);
+        symbole = anal_lex();
         i();
         list_instp();
     }
@@ -346,15 +482,15 @@ void list_inst(){
 
 void liste_id(){
     l_sz=0;
-    accepter(ID);
+    accepter(ID,LISTE_ID);
     liste_idp();
 }
 
 void liste_idp(){
     if(symbole.ul == VG){
         ++l_sz;
-        accepter(VG);
-        accepter(ID);
+        symbole = anal_lex();
+        accepter(ID,LISTE_IDP);
         liste_idp();
     }
     else{
@@ -368,9 +504,9 @@ void dcl(){
     int t;
     int i;
     if(symbole.ul == VAR){
-        accepter(VAR);
+        symbole=anal_lex();
         liste_id();
-        accepter(DP);
+        accepter(DP,DCL);
         t=type();
         for(i=0;i!=l_sz;++i){
             id_array[id_head-i-1].type=t;
@@ -381,7 +517,7 @@ void dcl(){
                 id_array[id_head-i-1].ptr=malloc(sizeof(char));
             }
         }
-        accepter(PV);
+        accepter(PV,DCL);
         dcl();
     }
     else{
@@ -393,13 +529,15 @@ void dcl(){
 void p(){    
     dcl_flag=1;
     symbole = anal_lex();
-    accepter(PROGRAM);
-    accepter(ID);
+    deb=1;
+    accepter(PROGRAM,P);
+    deb=0;
+    accepter(ID,P);
     dcl_flag=0;
-    accepter(PV);
+    accepter(PV,P);
     dcl();
     inst_comp();
-    accepter(PT);
+    accepter(PT,P);
 }
 
 #endif // NONTERMS_H

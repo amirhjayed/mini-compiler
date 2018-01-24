@@ -11,9 +11,11 @@ int id_head;
 int etat ;
 int dcl_flag; // utilisé par analyse sémantique pour determiner si declaration mal placée
 int new_id_flag;
+int deb = 0;
 int l_sz; //used by liste_id() to track the number of declared variables.
 int etiq_ctr; // label counter
 int f_line;
 int f_column;
+int eof_flag;
 
 #endif // GLOBALS_H
