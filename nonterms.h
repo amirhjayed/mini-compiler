@@ -58,11 +58,13 @@ int creer_etiq(){
 }
 
 int reprise_erreur(int ul,int s_ul,int nt){
-    if(s_ul!=LEX_ERROR){
-        printf("SYNTAX ERROR (%d, %d): Expected '%s' but found '%s'.\n",f_line,f_column,ul_words[ul],ul_words[s_ul]);
-    }
-    else{
-        printf("LEXICAL ERROR (%d, %d).\n",f_line,f_column);
+    if(eof_flag!=1){
+        if(s_ul!=LEX_ERROR){
+            printf("SYNTAX ERROR (%d, %d): Expected '%s' but found '%s'.\n",f_line,f_column,ul_words[ul],ul_words[s_ul]);
+        }
+        else{
+            printf("LEXICAL ERROR (%d, %d).\n",f_line,f_column);
+        }
     }
     while (symbole.ul != EOF){
         switch (nt) {
@@ -214,12 +216,14 @@ int accepter(int ul,int nt){
     else{
         traduction_flag = 0;
         rep_value=reprise_erreur(ul,symbole.ul,nt);
-        printf("repv=%d\n",rep_value);
         if(rep_value != EOF){
             printf("Analyse continue apres trouve: '%s'.\n ",ul_words[rep_value]);
         }
         else{
+            if(eof_flag!=1){
+                eof_flag=1;
                 printf("ERROR: unexpected EOF\n");
+            }
         }
         return SYNTAX_ERROR;
     }
