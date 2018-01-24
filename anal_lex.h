@@ -10,7 +10,7 @@ extern int f_column;
 
 enum uni_lex {PROGRAM, VAR, INTEGER, CHAR, BEGIN, END, IF, THEN, ELSE, WHILE, DO,
              READ, READLN, WRITE, WRITELN, ID, PV, PT, DP, VG, OPAFF,
-             OPMUL, OPREL, OPADD, NB, PO, PF};
+             OPMUL, OPREL, OPADD, NB, PO, PF, EPSILON};
 
 int unilex_id(const char *ch){
     int i = 0;

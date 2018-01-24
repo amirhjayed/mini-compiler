@@ -57,7 +57,7 @@ int main(int argc, char** argv){
         printf("Traduction echouee.\n\n");
     }
     else{
-        printf("\nTraduction reussit!\n Fichier destination: '%s'",argv[2]);
+        printf("\nTraduction reussite!\n Fichier destination: '%s'",argv[2]);
     }
 
     fclose(fs);

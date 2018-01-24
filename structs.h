@@ -2,9 +2,11 @@
 #define STRUCTS_H
 
 #define MAX_ID_LENGTH 32
+#define SYNTAX_ERROR -1
 #define LEX_ERROR -2
 #define TYPE_ERROR -3
 #define VOID_TYPE -4
+#define NO_ATT -5
 
 const char * const ul_words[] = {"program","var","integer","char","begin","end","if","then",
                   "else","while","do","read","readln","write","writeln","ID", "PV", "PT", "DP",

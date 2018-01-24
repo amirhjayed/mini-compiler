@@ -49,49 +49,61 @@ extern int etiq_ctr; // label counter
 extern int f_line;
 extern int f_column;
 
+enum nonterms {P, DCL,LISTE_ID ,LISTE_IDP ,LIST_INST ,LIST_INSTP, TYPE, INST_COMP,
+               I, EXPR, EXPRP, EXPR_SIMPLE, EXPR_SIMPLEP, TERME, TERMEP, FACTEUR};
+
 // Analyse synatxique
 
 int creer_etiq(){
     return etiq_ctr++;
 }
-void syntax_error(int ul,int s_ul){
-    if(s_ul!=-2){
+void reprise_erreur(int ul,int s_ul){
+    if(s_ul!=LEX_ERROR){
         printf("SYNTAX ERROR (%d, %d): Expected '%s' but found '%s'.\n",f_line,f_column,ul_words[ul],ul_words[s_ul]);
+
     }
     else{
         printf("LEXICAL ERROR (%d, %d).\n",f_line,f_column);
     }
 }
 int accepter(int ul){
-    int ret_att;
+    int ret_att = NO_ATT;
     if(ul == symbole.ul){
         if(symbole.ul == ID){
             ret_att=symbole.att;
-            symbole = anal_lex();
-            if((new_id_flag)&&(!dcl_flag)){ // if misplaced declaration
+            if((new_id_flag)&&(!dcl_flag)){
                 traduction_flag = 0;
-                printf("WARNING (%d, %d): misplaced declaration of %s\n",f_line,f_column,id_array[id_head-1].id);
+                printf("WARNING (%d, %d): '%s' undeclared.\n",f_line,f_column,id_array[id_head-1].id);
             }
-            return ret_att;
+            if((!new_id_flag)&&(dcl_flag)){
+                traduction_flag = 0;
+                printf("WARNING (%d, %d): '%s' redeclared.\n",f_line,f_column,id_array[id_head-1].id);
+            }
+        }
+        else if(symbole.ul == NB){
+            ret_att=symbole.att;
         }
         symbole = anal_lex();
+        return ret_att;
     }
     else{
         traduction_flag = 0;
-        syntax_error(ul,symbole.ul);
+        reprise_erreur(ul,symbole.ul);
+        return SYNTAX_ERROR;
     }
-    return -1;
 }
+
 int facteur(){
     int type=VOID_TYPE;
-    int ind_array;
+    int att;
     if(symbole.ul == ID){
-        ind_array=accepter(ID);
-        type=id_array[ind_array].type;
-        fprintf(fd,"valeurd %p\n",id_array[ind_array].ptr);
+        att=accepter(ID);
+        type=id_array[att].type;
+        fprintf(fd,"valeurd %p\n",id_array[att].ptr);
     }
     else if(symbole.ul == NB){
-        accepter(NB);
+        att=accepter(NB);
+        fprintf(fd,"empiler %d\n",att);
         type=INTEGER;
     }
     else if(symbole.ul == PO){
@@ -242,16 +254,19 @@ void i(){
        fprintf(fd,":=\n");
     }
     else if(symbole.ul == IF){
-        int sortie;
+        int sortie,sinon;
+        sinon=creer_etiq();
         sortie=creer_etiq();
         accepter(IF);
         expr();
-        fprintf(fd,"allersifaux %d \n",sortie);
+        fprintf(fd,"allersifaux %d \n",sinon);
         accepter(THEN);
         i();
+        fprintf(fd,"allerà %d \n",sortie);
         accepter(ELSE);
-        fprintf(fd,"etiq %d : \n",sortie);
+        fprintf(fd,"etiq %d : \n",sinon);
         i();
+        fprintf(fd,"etiq %d : \n",sortie);
     }
     else if(symbole.ul == WHILE){
         int test,sortie;
@@ -375,7 +390,7 @@ void dcl(){
     }
 }
 
-void p(){
+void p(){    
     dcl_flag=1;
     symbole = anal_lex();
     accepter(PROGRAM);
