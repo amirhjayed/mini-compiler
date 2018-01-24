@@ -12,6 +12,7 @@
 #include "anal_lex.h"
 #include "structs.h"
 #include "globals.h"
+#include "reprise_erreur.h"
 
 int facteur();
 int termep();
@@ -57,141 +58,7 @@ int creer_etiq(){
     return etiq_ctr++;
 }
 
-int reprise_erreur(int ul,int s_ul,int nt){
-    if(eof_flag!=1){
-        if(s_ul!=LEX_ERROR){
-            printf("SYNTAX ERROR (%d, %d): Expected '%s' but found '%s'.\n",f_line,f_column,ul_words[ul],ul_words[s_ul]);
-        }
-        else{
-            printf("LEXICAL ERROR (%d, %d).\n",f_line,f_column);
-        }
-    }
-    while (symbole.ul != EOF){
-        switch (nt) {
-        case P:
-            if(symbole.ul == PROGRAM){
-                return PROGRAM;
-            }
-            break;
-        case DCL:
-            if(symbole.ul == BEGIN){
-                return BEGIN;
-            }
-            break;
-        case LISTE_ID:
-            if(symbole.ul == DP){
-                return DP;
-            }
-            break;
-        case LISTE_IDP:
-            if(symbole.ul == DP){
-                return DP;
-            }
-            break;
-        case LIST_INSTP:
-            if(symbole.ul == END){
-                return END;
-            }
-            break;
-        case TYPE:
-            if(symbole.ul == PV){
-                return PV;
-            }
-            break;
-        case INST_COMP:
-            if(deb == 1){
-                if(symbole.ul == BEGIN){
-                    return BEGIN;
-                }
-            }
-            else{
-                if(symbole.ul == PT){
-                    return PT;
-                }
-            }
-            break;
-        case I:
-            if(deb==1){
-                if(symbole.ul == ELSE){
-                    return ELSE;
-                }
-            }
-            else{
-                if(symbole.ul == PV){
-                    return PV;
-                }
-                if(symbole.ul == END){
-                    return END;
-                }
-            }
-            break;
-        case EXPRP:
-            if(symbole.ul == THEN){
-                return THEN;
-            }
-            if(symbole.ul == DO){
-                return DO;
-            }
-            if(symbole.ul == PF){
-                return PF;
-            }
-            break;
-        case EXPR_SIMPLEP:
-            if(symbole.ul == OPREL){
-                return OPREL;
-            }
-            if(symbole.ul == THEN){
-                return THEN;
-            }
-            if(symbole.ul == DO){
-                return DO;
-            }
-            if(symbole.ul == PF){
-                return PF;
-            }
-            break;
-        case TERMEP:
-            if(symbole.ul == OPADD){
-                return OPADD;
-            }
-            if(symbole.ul == OPREL){
-                return OPREL;
-            }
-            if(symbole.ul == THEN){
-                return THEN;
-            }
-            if(symbole.ul == DO){
-                return DO;
-            }
-            if(symbole.ul == PF){
-                return PF;
-            }
-            break;
-        case FACTEUR:
-            if(symbole.ul == OPMUL){
-                return OPMUL;
-            }
-            else if(symbole.ul == OPADD){
-                return OPADD;
-            }
-            if(symbole.ul == OPREL){
-                return OPREL;
-            }
-            if(symbole.ul == THEN){
-                return THEN;
-            }
-            if(symbole.ul == DO){
-                return DO;
-            }
-            if(symbole.ul == PF){
-                return PF;
-            }
-            break;
-        }
-        symbole=anal_lex();
-    }
-    return EOF;
-}
+
 int accepter(int ul,int nt){
     int ret_att = NO_ATT;
     int rep_value;
@@ -217,7 +84,7 @@ int accepter(int ul,int nt){
         traduction_flag = 0;
         rep_value=reprise_erreur(ul,symbole.ul,nt);
         if(rep_value != EOF){
-            printf("Analyse continue apres trouve: '%s'.\n ",ul_words[rep_value]);
+            printf("Analyse continue apres trouve: '%s'.\n",ul_words[rep_value]);
         }
         else{
             if(eof_flag!=1){
@@ -250,6 +117,33 @@ int facteur(){
     else{
         traduction_flag=0;
         printf("SYNTAX ERROR (%d, %d): facteur manquant \n",f_line, f_column);
+        while ((symbole.ul != EOF)){
+            if(symbole.ul == OPMUL){
+                break;
+            }
+            else if(symbole.ul == OPADD){
+                break;
+            }
+            else if(symbole.ul == OPREL){
+                break;
+            }
+            else if(symbole.ul == THEN){
+                break;
+            }
+            else if(symbole.ul == ELSE){
+                break;
+            }
+            else if(symbole.ul == DO){
+                break;
+            }
+            else if(symbole.ul == PF){
+                break;
+            }
+            else
+                symbole = anal_lex();
+        }
+        if(symbole.ul!=EOF)
+            printf("Analyse continue apres trouve '%s'.\n",ul_words[symbole.ul]);
     }
     return type;
 }

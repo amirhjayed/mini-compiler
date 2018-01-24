@@ -11,7 +11,9 @@
 const char * const ul_words[] = {"program","var","integer","char","begin","end","if","then",
                   "else","while","do","read","readln","write","writeln","ID", "PV", "PT", "DP",
                     "VG", "OPAFF","OPMUL", "OPREL", "OPADD", "NB", "PO", "PF"};
-
+enum uni_lex {PROGRAM, VAR, INTEGER, CHAR, BEGIN, END, IF, THEN, ELSE, WHILE, DO,
+             READ, READLN, WRITE, WRITELN, ID, PV, PT, DP, VG, OPAFF,
+             OPMUL, OPREL, OPADD, NB, PO, PF, EPSILON};
 
                   /*la position est le code d'UL*/
 
