@@ -288,7 +288,10 @@ void i(){
         sinon=creer_etiq();
         sortie=creer_etiq();
         accepter(IF,I);
-        expr();
+        if(expr()==TYPE_ERROR){
+            traduction_flag=0;
+            printf("WARNING (%d, %d): type mismatch in expr\n",f_line,f_column);
+        }
         fprintf(fd,"allersifaux %d \n",sinon);
         accepter(THEN,I);
         deb=1;
@@ -306,7 +309,10 @@ void i(){
         sortie=creer_etiq();
         symbole=anal_lex();
         fprintf(fd,"etiq %d\n",test);
-        expr();
+        if(expr()==TYPE_ERROR){
+            traduction_flag=0;
+            printf("WARNING (%d, %d): type mismatch in expr\n",f_line,f_column);
+        }
         fprintf(fd,"allersifaux %d\n",sortie);
         accepter(DO,I);
         i();
@@ -315,31 +321,31 @@ void i(){
     }
     else if(symbole.ul == READ){
         symbole=anal_lex();
-        accepter(PO,I);
+        if(accepter(PO,I)==SYNTAX_ERROR){return;}
         ind_array=accepter(ID,I);
         fprintf(fd,"read valeurg %p\n",id_array[ind_array].ptr);
-        accepter(PF,I);
+        if(accepter(PF,I)==SYNTAX_ERROR){return;};
     }
     else if(symbole.ul == READLN){
         symbole = anal_lex();
-        accepter(PO,I);
+        if(accepter(PO,I)==SYNTAX_ERROR){return;};
         ind_array=accepter(ID,I);
         fprintf(fd,"readln valeurg %p\n",id_array[ind_array].ptr);
-        accepter(PF,I);
+        if(accepter(PF,I)==SYNTAX_ERROR){return;};
     }
     else if(symbole.ul == WRITE){
         symbole = anal_lex();
-        accepter(PO,I);
+        if(accepter(PO,I)==SYNTAX_ERROR){return;};
         ind_array=accepter(ID,I);
         fprintf(fd,"write valeurd %p\n",id_array[ind_array].ptr);
-        accepter(PF,I);
+        if(accepter(PF,I)==SYNTAX_ERROR){return;};
     }
     else if(symbole.ul == WRITELN){
         symbole = anal_lex();
-        accepter(PO,I);
+        if(accepter(PO,I)==SYNTAX_ERROR){return;};
         ind_array=accepter(ID,I);
         fprintf(fd,"writeln valeurd %p\n",id_array[ind_array].ptr);
-        accepter(PF,I);
+        if(accepter(PF,I)==SYNTAX_ERROR){return;};
     }
 }
 
@@ -404,7 +410,7 @@ void dcl(){
     if(symbole.ul == VAR){
         symbole=anal_lex();
         liste_id();
-        accepter(DP,DCL);
+        if(accepter(DP,DCL)==SYNTAX_ERROR){dcl_flag=0;return;}
         t=type();
         for(i=0;i!=l_sz;++i){
             id_array[id_head-i-1].type=t;
