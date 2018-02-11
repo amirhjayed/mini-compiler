@@ -3,6 +3,7 @@
 
 #include "structs.h"
 #include "globals.h"
+#include "anal_lex.h"
 
 int reprise_erreur(int ul,int s_ul,int nt){
     if(eof_flag!=1){
@@ -40,6 +41,27 @@ int reprise_erreur(int ul,int s_ul,int nt){
             if(symbole.ul == END){
                 return END;
             }
+            if(symbole.ul == ID){
+                return ID;
+            }
+            if(symbole.ul == IF){
+                return IF;
+            }
+            if(symbole.ul == WHILE){
+                return WHILE;
+            }
+            if(symbole.ul == READ){
+                return READ;
+            }
+            if(symbole.ul == READLN){
+                return READLN;
+            }
+            if(symbole.ul == WRITE){
+                return WRITE;
+            }
+            if(symbole.ul == WRITELN){
+                return WRITELN;
+            }
             break;
         case TYPE:
             if(symbole.ul == PV){
@@ -69,7 +91,7 @@ int reprise_erreur(int ul,int s_ul,int nt){
                 if(symbole.ul == PV){
                     return PV;
                 }
-                if(symbole.ul == END){
+                else if(symbole.ul == END){
                     return END;
                 }
             }

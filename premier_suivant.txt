@@ -1,0 +1,52 @@
+premier(p)={program} 	
+premier(dcl)={var,epsilon} 
+premier(liste_id)={id}
+premier(liste_idp)={V,epsilon}
+premier(liste_inst)={;}
+premier(liste_instp)={PV,epsilon}
+premier(type)={integer,char}
+premier(inst_composee)={begin}
+premier(I)={id,if,while,read,readln,write,writeln}
+premier(exp)={id,nb,(}
+premier(exp_simple)={id,nb,(}
+premier(facteur)={id,nb,(}
+premier(S)={oprel,epsilon} // ambiguite de exp //
+premier(exp_simplep)={opadd,epsilon}	
+premier(termep)={opmul,epsilon}
+
+
+suivant{p}=($)
+suivant{dcl}=(begin)
+suivant{liste_id}=(:)
+suivant{liste_idp}=(:)
+suivant{liste_inst}=(end)
+suivant{liste_instp}=(end)
+suivant{type}=(;)
+suivant{inst_composee}=(.)
+suivant{I}=(PV,end,else) 
+suivant{exp}=(then,do,))
+suivant{S}=(then,do,))
+suivant{exp_simple}=(oprel,then,do,))
+suivant{exp_simplep}=(oprel,then,do,))
+suivant{terme}=(opadd,oprel,then,do,))
+suivant{termep}=(opadd,oprel,then,do,))
+suivant{facteur}=(opmul,opadd,oprel,then,do,))
+
+p->  program id ; Dcl Inst_composée .
+Dcl ->  var Liste_id : Type ; Dcl | EPSILON  
+Liste_id -> id Liste_id’
+liste_id’ ->  , id Liste_id’ | EPSILON  
+Liste_inst ->  I Liste_inst’
+Liste_inst ->  ; I Liste_inst’ | EPSILON  
+Type  ->  integer | char
+Inst_composée  ->  begin Liste_inst end
+I ->  Id := Exp_simple | if Exp then I else I |
+ while Exp do  I 
+read ( id ) | readln ( id ) | write ( id ) | writeln ( id ) 
+Exp  ->  Exp_simple  Exp’
+Exp’ ->  EPSILON  |  oprel Exp_simple
+Exp_simple ->  Terme Exp_simple’
+Exp_simple’ -> opadd Terme Exp_simple’ | EPSILON  
+Terme  -> Facteur Terme’
+Terme’  -> opmul Facteur Terme’ | EPSILON  
+Facteur  -> id | nb | (Exp) 

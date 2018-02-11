@@ -52,6 +52,7 @@ extern int eof_flag;
 extern int f_line;
 extern int f_column;
 
+int no_instruction;
 // Analyse synatxique
 
 int creer_etiq(){
@@ -274,7 +275,7 @@ void i(){
     if(symbole.ul == ID){
        ind_array=accepter(ID,I);
        fprintf(fd,"valeurg %p\n",id_array[ind_array].ptr);
-       accepter(OPAFF,I);
+       if(accepter(OPAFF,I)==SYNTAX_ERROR){return;};
        t1=expr_simple();
        t2=id_array[ind_array].type;
        if(t1!=t2){
@@ -287,18 +288,18 @@ void i(){
         int sortie,sinon;
         sinon=creer_etiq();
         sortie=creer_etiq();
-        accepter(IF,I);
+        symbole=anal_lex();
         if(expr()==TYPE_ERROR){
             traduction_flag=0;
             printf("WARNING (%d, %d): type mismatch in expr\n",f_line,f_column);
         }
         fprintf(fd,"allersifaux %d \n",sinon);
-        accepter(THEN,I);
+        if(accepter(THEN,I)==SYNTAX_ERROR){return;};
         deb=1;
         i();
         deb=0;
         fprintf(fd,"allerà %d \n",sortie);
-        accepter(ELSE,I);
+        if(accepter(ELSE,I)==SYNTAX_ERROR){return;};
         fprintf(fd,"etiq %d : \n",sinon);
         i();
         fprintf(fd,"etiq %d : \n",sortie);
@@ -309,12 +310,9 @@ void i(){
         sortie=creer_etiq();
         symbole=anal_lex();
         fprintf(fd,"etiq %d\n",test);
-        if(expr()==TYPE_ERROR){
-            traduction_flag=0;
-            printf("WARNING (%d, %d): type mismatch in expr\n",f_line,f_column);
-        }
+        expr();
         fprintf(fd,"allersifaux %d\n",sortie);
-        accepter(DO,I);
+        if(accepter(DO,I)==SYNTAX_ERROR){return;};
         i();
         fprintf(fd,"allerà %d\n",test);
         fprintf(fd,"etiq %d\n",sortie);
@@ -347,9 +345,14 @@ void i(){
         fprintf(fd,"writeln valeurd %p\n",id_array[ind_array].ptr);
         if(accepter(PF,I)==SYNTAX_ERROR){return;};
     }
+
+    else{
+        no_instruction = 1;
+    }
 }
 
 void inst_comp(){
+    no_instruction=0;
     deb=1;
     accepter(BEGIN,INST_COMP);
     deb=0;
@@ -359,7 +362,7 @@ void inst_comp(){
 
 int type(){
     if (symbole.ul == INTEGER){
-        accepter(INTEGER,TYPE);
+        symbole = anal_lex();
         return INTEGER;
     }
     else{
@@ -369,13 +372,13 @@ int type(){
 }
 
 void list_instp(){
-    if(symbole.ul == PV){
-        symbole = anal_lex();
+    if(no_instruction == 0){
+        accepter(PV,LIST_INSTP);
         i();
         list_instp();
     }
     else{
-        // epsilon
+        //epsilon
     }
 }
 
