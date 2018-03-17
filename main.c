@@ -27,6 +27,7 @@ extern int f_column;
 
 
 int main(int argc, char** argv){
+    printf("git test\n");
     etiq_ctr=0;
     etat=0;
     eof_flag=0;
